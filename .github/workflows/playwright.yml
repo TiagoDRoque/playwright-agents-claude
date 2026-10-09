@@ -25,11 +25,34 @@ jobs:
 
       - name: Run Playwright tests
         run: npx playwright test
+        env:
+          DEBUG: pw:api
 
-      - name: Upload Playwright report
+      - name: Test summary
+        if: always()
+        run: |
+          echo "## Playwright test results" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f test-results/junit.xml ]; then
+            PASSED=$(grep -o 'tests="[0-9]*"' test-results/junit.xml | head -1 | grep -o '[0-9]*')
+            FAILED=$(grep -o 'failures="[0-9]*"' test-results/junit.xml | head -1 | grep -o '[0-9]*')
+            echo "- Total tests: ${PASSED}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Failures: ${FAILED}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No junit.xml found" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 30
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: test-results/junit.xml
           retention-days: 30
