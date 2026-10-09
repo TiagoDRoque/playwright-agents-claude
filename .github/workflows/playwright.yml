@@ -23,7 +23,10 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
+      - name: Generate Cucumber/BDD tests
+        run: npx bddgen
+
+      - name: Run Playwright tests (including Cucumber scenarios)
         run: npx playwright test
         env:
           DEBUG: pw:api
@@ -55,4 +58,12 @@ jobs:
         with:
           name: junit-report
           path: test-results/junit.xml
+          retention-days: 30
+
+      - name: Upload Cucumber HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report
+          path: cucumber-report/
           retention-days: 30

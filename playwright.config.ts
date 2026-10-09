@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig, cucumberReporter } from 'playwright-bdd';
 
 /**
  * Read environment variables from file.
@@ -8,11 +9,16 @@ import { defineConfig, devices } from '@playwright/test';
 // import path from 'path';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
+const bddTestDir = defineBddConfig({
+  features: 'features/**/*.feature',
+  steps: 'features/step_definitions/**/*.ts',
+});
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: '.',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -23,8 +29,13 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
-    ? [['list'], ['html'], ['junit', { outputFile: 'test-results/junit.xml' }]]
-    : 'html',
+    ? [
+        ['list'],
+        ['html'],
+        ['junit', { outputFile: 'test-results/junit.xml' }],
+        cucumberReporter('html', { outputFile: 'cucumber-report/report.html' }),
+      ]
+    : [['html'], cucumberReporter('html', { outputFile: 'cucumber-report/report.html' })],
   /* Give assertions more headroom when running with SLOWMO */
   expect: { timeout: process.env.SLOWMO ? 15000 : 5000 },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -43,6 +54,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testDir: './tests',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    {
+      name: 'cucumber',
+      testDir: bddTestDir,
       use: { ...devices['Desktop Chrome'] },
     },
 

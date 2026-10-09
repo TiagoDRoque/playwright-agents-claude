@@ -8,5 +8,9 @@ node_modules/
 /playwright/.auth/
 /.playwright-mcp/
 
+# Cucumber / playwright-bdd
+/.features-gen/
+/cucumber-report/
+
 # Claude Code local settings
 .claude/settings.local.json
